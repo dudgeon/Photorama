@@ -6,7 +6,16 @@
 //  Copyright © 2015 Geoff Dudgeon. All rights reserved.
 //
 
-import Foundation
+import UIKit
+
+enum ImageResult {
+    case Success(UIImage)
+    case Failure(ErrorType)
+}
+
+enum PhotoError: ErrorType {
+    case ImageCreationError
+}
 
 class PhotoStore {
     
@@ -15,7 +24,7 @@ class PhotoStore {
         return NSURLSession(configuration: config)
     }()
 
-    func fetchRecentPhotos() {
+    func fetchRecentPhotos(completion completion: (PhotosResult) -> Void) {
 
         let url = FlickrAPI.recentPhotosURL()
         let request = NSURLRequest(URL: url)
@@ -23,23 +32,20 @@ class PhotoStore {
             
             (data, response, error) -> Void in
             
-            // success!
-            if let jsonData = data {
-                if let jsonString = NSString(data: jsonData, encoding: NSUTF8StringEncoding) {
-                    print("\(jsonString)")
-                }
-            }
-            
-            // error!
-            else if let requestError = error {
-                print("Error fetching recent photos: \(requestError)")
-            } else {
-                print("Unexpected error with the request")
-            }
-        
+            let result = self.processRecentPhotosRequest(data: data, error: error)
+            completion(result)
         })
         
         task.resume() // resume == start, in this case
+    }
+    
+    
+    func processRecentPhotosRequest(data data: NSData?, error: NSError?) -> PhotosResult {
+        guard let jsonData = data else {
+            return .Failure(error!)
+        }
+        
+        return FlickrAPI.photosFromJSONData(jsonData)
     }
     
     
