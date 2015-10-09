@@ -39,6 +39,45 @@ class PhotoStore {
         task.resume() // resume == start, in this case
     }
     
+    func fetchImageForPhoto(photo: Photo, completion: (ImageResult) -> Void) {
+        
+        let photoURL = photo.remoteURL
+        let request = NSURLRequest(URL: photoURL)
+        
+        let task = session.dataTaskWithRequest(request, completionHandler: {
+            (data, response, error) -> Void in
+            
+            let result = self.processImageRequest(data: data, error: error)
+            
+            if case let .Success(image) = result {
+                photo.image = image
+            }
+            
+            completion(result)
+        })
+            
+            task.resume()
+        
+    }
+    
+    func processImageRequest(data data: NSData?, error: NSError?) -> ImageResult {
+        
+        guard let
+        imageData = data,
+            image = UIImage(data: imageData) else {
+                
+                // couldn't create an image
+                if data == nil {
+                    return .Failure(error!)
+                } else {
+                    return .Failure(PhotoError.ImageCreationError)
+                }
+                
+        }
+        
+        return .Success(image)
+    }
+    
     
     func processRecentPhotosRequest(data data: NSData?, error: NSError?) -> PhotosResult {
         guard let jsonData = data else {
