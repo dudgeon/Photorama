@@ -16,6 +16,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        
+        
+        // "Use property injection to give the PhotosViewController its store dependency" (P.263)
+        let rootViewController = window!.rootViewController as! UINavigationController
+        let photosViewController = rootViewController.topViewController as! PhotosViewController
+        photosViewController.store = PhotoStore()
+        
+        
         return true
     }
 
